@@ -1,0 +1,46 @@
+/****************************************
+*
+* test of KDSource component with McStas
+*
+* %PARAMETERS
+* DistSrcDet [float] Distance between source and detector [m]
+* L          [float] Size of detector                     [m]
+* Emin, Emax [float] Energy max and min to detect         [MeV]
+* sourcefile [str]  Name of the XML parameters file containing KDSource definition.
+* use_kde    [0/1]  Whether to use KDE or just sample particles from the MCPL file. Default: 1
+* loop       [0/1]  Whether to loop over the file when reaching its end. Default: 1
+* 
+*****************************************/
+
+DEFINE INSTRUMENT kds_instr()
+
+DECLARE
+%{
+    int DistSrcDet = 0.01;
+    double L = 1;
+    double E_min = 0.001;
+    double E_max = 1e8;
+    int use_kde = 1;
+    int loop = 1;
+
+%}
+
+INITIALIZE
+%{
+%}
+
+TRACE
+
+COMPONENT origin = Arm()
+    AT (0,0,0) ABSOLUTE
+
+COMPONENT source = KDSource(sourcefile="/Users/paul/Paul/Phelma/Stages/stage_2A/mcstas_kdsource/source_cubo.xml", use_kde=1, loop=1)
+    AT (0,0,0) RELATIVE origin
+
+COMPONENT pos_det = PSD_monitor(xwidth=L, yheight=L, filename="position.dat", restore_neutron=1)
+    AT (0,0,DistSrcDet) RELATIVE source
+
+COMPONENT E_det = E_monitor(xwidth=L, yheight=L, Emin=E_min, Emax=E_max, filename="energy.dat")
+    AT (0,0,DistSrcDet) RELATIVE source
+
+END 
